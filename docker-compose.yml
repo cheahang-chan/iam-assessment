@@ -1,0 +1,25 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  app:
+    build: .
+    container_name: gt-iam-assessment
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/security-groups
+    env_file:
+      - .env
+
+volumes:
+  mongo-data:
