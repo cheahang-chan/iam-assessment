@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 
 export const errorMiddleware = (err: any, req: Request, res: Response, next: NextFunction): void => {
+  const traceId = req.headers['x-correlation-id'] || 'N/A';
   const statusCode = err.statusCode || 500;
 
-  console.error(`[ERROR] ${err.name || 'InternalError'}: ${err.message}`);
+  console.error(`[${traceId}] [ERROR] ${err.name || 'InternalError'}: ${err.message}`);
 
   if (process.env.NODE_ENV === 'development') {
     console.error(err.stack);
@@ -11,6 +12,7 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
 
   res.status(statusCode).json({
     error: true,
-    message: err.message || 'Internal Server Error',
+    traceId,
+    message: err.message || 'Internal Server Error'
   });
 };

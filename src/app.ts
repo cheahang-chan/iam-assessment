@@ -1,17 +1,23 @@
 import 'express-async-errors';
 import express from 'express';
 import dotenv from 'dotenv';
+import helmet from "helmet";
 import connectMongo from './config/mongo.config';
 import securityGroupRoutes from './routes/security-group.routes';
 import { errorMiddleware } from './middleware/error.middleware';
+import { correlationMiddleware } from './middleware/correlation.middleware';
 
 dotenv.config();
+
 const app = express();
+
+app.use(helmet());
+app.use(correlationMiddleware);
 app.use(express.json());
 
 connectMongo();
 
-app.use('/api/security-groups', securityGroupRoutes);
+app.use('/api/v1/security-groups', securityGroupRoutes);
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 3000;
