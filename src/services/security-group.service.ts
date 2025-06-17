@@ -16,6 +16,7 @@ export const fetchSecurityGroupsBySdk = async () => {
     .filter('securityEnabled eq true')
     .get();
   const graphGroups: unknown[] = groups.value;
+  const syncedGroups: any[] = [];
 
   let processed = 0, skipped = 0, errors = 0;
 
@@ -27,7 +28,7 @@ export const fetchSecurityGroupsBySdk = async () => {
       const existing = await SecurityGroupModel.findOne({ graphId: group.id });
 
       if (!existing || existing.groupHash !== groupHash) {
-        await SecurityGroupModel.replaceOne(
+        const groupDocument = await SecurityGroupModel.replaceOne(
           { graphId: group.id },
           {
             graphId: group.id,
@@ -47,6 +48,7 @@ export const fetchSecurityGroupsBySdk = async () => {
         );
 
         Logger.info(`[GroupSync] Replaced: ${group.displayName} (${group.id})`);
+        syncedGroups.push(groupDocument);
         processed++;
       } else {
         Logger.debug(`[GroupSync] Skipped unchanged group: ${group.displayName}`);
@@ -63,5 +65,10 @@ export const fetchSecurityGroupsBySdk = async () => {
     }
   }
 
-  return groups.value;
+  return {
+    processed,
+    skipped,
+    errors,
+    groups: syncedGroups
+  };
 };
