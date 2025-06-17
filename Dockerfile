@@ -2,14 +2,13 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-
+# Install dependencies first — only if package files change
+COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 COPY . .
 
-RUN yarn run build
+RUN yarn build
 
 EXPOSE 3000
-
-CMD ["node", "dist/app.js"]
+CMD ["yarn", "start"]
