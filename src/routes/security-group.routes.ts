@@ -3,6 +3,6 @@ import { fetchAndStoreSecurityGroups } from '../controllers/security-group.contr
 
 const router = express.Router();
 
-router.get('/sync', fetchAndStoreSecurityGroups);
+router.post('/sync', fetchAndStoreSecurityGroups);
 
 export default router;
