@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import { createGraphClient } from '../libs/graph-client';
+import { Logger } from '../utils/logger';
 
 const seedSecurityGroups = async () => {
+    // https://portal.azure.com/?feature.msaljs=true#view/Microsoft_AAD_IAM/GroupsList.ReactView
+
     const client = await createGraphClient();
 
     const groups = [
@@ -17,8 +20,8 @@ const seedSecurityGroups = async () => {
             mailNickname: g.nickname,
             securityEnabled: true
         });
-        console.log(`Created group: ${g.name}`);
+        Logger.info(`Created group: ${g.name}`);
     }
 };
 
-seedSecurityGroups().catch(console.error);
+seedSecurityGroups().catch(Logger.error);

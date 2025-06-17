@@ -6,6 +6,7 @@ import connectMongo from './config/mongo.config';
 import securityGroupRoutes from './routes/security-group.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { correlationMiddleware } from './middleware/correlation.middleware';
+import { Logger } from './utils/logger';
 
 dotenv.config();
 
@@ -21,4 +22,4 @@ app.use('/api/v1/security-groups', securityGroupRoutes);
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`[Server] Listening on port ${PORT}`));
+app.listen(PORT, () => Logger.info(`[Server] Listening on port ${PORT}`));
