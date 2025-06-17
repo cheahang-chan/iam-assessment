@@ -7,6 +7,7 @@ import securityGroupRoutes from './routes/security-group.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { correlationMiddleware } from './middleware/correlation.middleware';
 import { Logger } from './utils/logger';
+import initSwagger from './config/swagger.config';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(helmet());
 app.use(correlationMiddleware);
 app.use(express.json());
 
+initSwagger(app);
 connectMongo();
 
 app.use('/api/v1/security-groups', securityGroupRoutes);

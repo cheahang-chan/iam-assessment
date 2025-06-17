@@ -1,0 +1,35 @@
+sync:
+  post:
+    summary: Sync security groups
+    tags:
+      - Security Groups
+    responses:
+      '200':
+        description: Sync result
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Security groups synced
+                data:
+                  type: object
+                  properties:
+                    processed:
+                      type: integer
+                      example: 1
+                    skipped:
+                      type: integer
+                      example: 2
+                    errors:
+                      type: integer
+                      example: 0
+                    groups:
+                      type: array
+                      items:
+                        type: object

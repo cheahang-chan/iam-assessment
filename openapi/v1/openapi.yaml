@@ -1,0 +1,9 @@
+openapi: 3.0.0
+info:
+  title: Security Group Sync API
+  version: 1.0.0
+  description: API to sync Azure AD security groups and members
+
+paths:
+  /api/v1/security-groups/sync:
+    $ref: './paths/security-groups-sync.yaml#/sync'
