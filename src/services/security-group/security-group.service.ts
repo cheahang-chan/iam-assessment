@@ -2,6 +2,7 @@ import { SecurityGroupDTO, SecurityGroupSchema } from '../../schemas/security-gr
 import { generateGroupHash } from '../../utils/hash';
 import { IGraphClient, ISecurityGroupModel, ISyncResult } from './security-group.interfaces';
 import { ILogger } from '../../interfaces/logger.interface';
+import { AppError, ValidationError } from '../../utils/errors';
 
 export class SecurityGroupService {
   private graphClient: IGraphClient;
@@ -107,14 +108,22 @@ export class SecurityGroupService {
   }
 
   private async fetchGroups(): Promise<unknown[]> {
-    const result = await this.graphClient
-      .api('/groups')
-      .filter('securityEnabled eq true')
-      .get();
-    return result.value;
+    try {
+      const result = await this.graphClient
+        .api('/groups')
+        .filter('securityEnabled eq true')
+        .get();
+      return result.value;
+    } catch (err: any) {
+      throw new AppError('Failed to fetch security groups from Microsoft Graph API', 502, 'GRAPH_API_ERROR', err);
+    }
   }
 
   private validateGroup(groupRaw: unknown): SecurityGroupDTO {
-    return SecurityGroupSchema.parse(groupRaw);
+    try {
+      return SecurityGroupSchema.parse(groupRaw);
+    } catch (err: any) {
+      throw new ValidationError('Invalid security group data', err.errors);
+    }
   }
 }
