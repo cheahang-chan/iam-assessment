@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { Logger } from '../utils/logger';
 
+// Future ability to send alerts via AWS CloudWatch to Slack
+
 export const errorMiddleware = (err: any, req: Request, res: Response, next: NextFunction): void => {
   const traceId = req.headers['x-correlation-id'] || 'N/A';
   const statusCode = err.statusCode || 500;
@@ -16,8 +18,7 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
   Logger.error(`[${traceId}] [ERROR] ${err.name || 'InternalError'}: ${err.message}`);
 
   if (errorCode) responseBody.code = errorCode;
-  if (errorDetails && process.env.NODE_ENV === 'development') {
-    // Future ability to send alerts via AWS CloudWatch to Slack
+  if (process.env.NODE_ENV === 'development') {
     Logger.error(err.stack);
     if (errorDetails) responseBody.details = errorDetails;
   }
