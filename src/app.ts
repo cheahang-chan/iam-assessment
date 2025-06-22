@@ -23,5 +23,4 @@ connectMongo();
 app.use('/api/v1/security-groups', securityGroupRoutes);
 app.use(errorMiddleware);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => Logger.info(`[Server] Listening on port ${PORT}`));
+export default app;

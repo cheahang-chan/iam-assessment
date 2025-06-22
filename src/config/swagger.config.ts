@@ -1,11 +1,7 @@
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 import { Logger } from '../utils/logger';
-import path from 'path';
-import fs from 'fs';
-
-const swaggerJsonPath = path.join(__dirname, '../../openapi/openapi.json');
-const swaggerDocument = JSON.parse(fs.readFileSync(swaggerJsonPath, 'utf8'));
+import swaggerDocument from '../../openapi/openapi.json';
 
 const initSwagger = (app: Express): void => {
   app.use('/api-docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument) as any);
