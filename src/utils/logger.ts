@@ -1,6 +1,7 @@
 import winston from 'winston';
+import { ILogger } from '../interfaces/logger.interface';
 
-export const Logger = winston.createLogger({
+export const Logger: ILogger = winston.createLogger({
     level: 'info',
     format: winston.format.combine(
         winston.format.timestamp(),
