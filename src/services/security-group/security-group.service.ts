@@ -107,6 +107,11 @@ export class SecurityGroupService {
     return response;
   }
 
+  /**
+   * Use a circuit-breaker & retry policy for more advanced error handling and resilience.
+   * We can also think about caching results from Graph API, but that maybe redundant as
+   * syncing to MongoDB is in a way a form of caching mechanism.
+   */
   private async fetchGroups(): Promise<unknown[]> {
     try {
       const result = await this.graphClient
