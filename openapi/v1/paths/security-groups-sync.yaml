@@ -3,6 +3,13 @@ sync:
     summary: Sync security groups
     tags:
       - Security Groups
+    parameters:
+      - in: query
+        name: dryRun
+        schema:
+          type: boolean
+        required: false
+        description: If true, does not persist changes.
     responses:
       '200':
         description: Sync result

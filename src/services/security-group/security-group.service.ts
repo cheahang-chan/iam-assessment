@@ -41,7 +41,7 @@ export class SecurityGroupService {
    * when any field has been changed and update it in our database and ensure
    * bit-for-bit data fidelity.
    */
-  
+
   async syncSecurityGroups({ dryRun = false }: { dryRun?: boolean }): Promise<ISyncResult> {
     const groups = await this.fetchGroups();
 
@@ -59,22 +59,22 @@ export class SecurityGroupService {
         const existing = await this.groupModel.findOne({ graphId: group.id });
 
         if (!existing || existing.groupHash !== groupHash) {
-          if (!dryRun) {
-            const document = {
-              graphId: group.id,
-              displayName: group.displayName,
-              description: group.description || '',
-              mailNickname: group.mailNickname || '',
-              mailEnabled: group.mailEnabled,
-              securityEnabled: group.securityEnabled,
-              groupTypes: group.groupTypes || [],
-              visibility: group.visibility || '',
-              createdDateTime: new Date(group.createdDateTime),
-              renewedDateTime: new Date(group.renewedDateTime),
-              syncedAt: new Date(),
-              groupHash
-            };
+          const document = {
+            graphId: group.id,
+            displayName: group.displayName,
+            description: group.description || '',
+            mailNickname: group.mailNickname || '',
+            mailEnabled: group.mailEnabled,
+            securityEnabled: group.securityEnabled,
+            groupTypes: group.groupTypes || [],
+            visibility: group.visibility || '',
+            createdDateTime: new Date(group.createdDateTime),
+            renewedDateTime: new Date(group.renewedDateTime),
+            syncedAt: new Date(),
+            groupHash
+          };
 
+          if (!dryRun) {
             await this.groupModel.replaceOne(
               { graphId: group.id },
               document,
@@ -82,10 +82,11 @@ export class SecurityGroupService {
             );
 
             this.logger.info(`[GroupSync] Replaced: ${group.displayName} (${group.id})`);
-            response.groups.push(document);
           } else {
             this.logger.info(`[GroupSync] Would replace: ${group.displayName} (${group.id})`);
           }
+          
+          response.groups.push(document);
           response.processed++;
         } else {
           this.logger.debug(`[GroupSync] Skipped unchanged group: ${group.displayName}`);
