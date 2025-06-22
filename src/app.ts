@@ -6,7 +6,6 @@ import connectMongo from './config/mongo.config';
 import securityGroupRoutes from './routes/security-group.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { correlationMiddleware } from './middleware/correlation.middleware';
-import { Logger } from './utils/logger';
 import initSwagger from './config/swagger.config';
 
 dotenv.config();
