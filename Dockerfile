@@ -1,11 +1,11 @@
 FROM node:22-alpine
 
 # Install AWS CLI and jq
-RUN apk add --no-cache jq curl unzip && \
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && \
-    unzip /tmp/awscliv2.zip -d /tmp && \
-    /tmp/aws/install && \
-    rm -rf /tmp/aws /tmp/awscliv2.zip
+# There was a breaking change in the base image used that prevents us from installing via pip
+# Instead of activating a virtual env, this is a simpler workaround
+# https://github.com/python/cpython/issues/102134
+RUN apk add --no-cache jq aws-cli
+RUN aws configure set default.region ap-southeast-1
 
 WORKDIR /app
 
@@ -16,6 +16,8 @@ RUN yarn install --frozen-lockfile
 COPY . .
 
 RUN yarn build
+
+ENV NODE_ENV=production
 
 # Copy in your entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

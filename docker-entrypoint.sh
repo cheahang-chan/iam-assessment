@@ -5,12 +5,7 @@ set -e
 # rely on dotenv to add the environment variables to the node process
 
 if [ -n "$APP_SECRET_ARN" ]; then
-    APP_SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id "$APP_SECRET_ARN" --region "$AWS_REGION" | jq -r .SecretString)
-
-    echo "$APP_SECRETS_JSON" | jq -r 'to_entries[] | "export \(.key)=\(.value)"' > /tmp/set_env.sh
-    source /tmp/set_env.sh
-
-    unset APP_SECRETS_JSON
+    aws secretsmanager get-secret-value --secret-id "$APP_SECRET_ARN" --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > .env
 fi
 
 exec "$@"
