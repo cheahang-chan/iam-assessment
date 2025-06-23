@@ -34,7 +34,7 @@ jobs:
         run: docker build -t $APP_NAME .
 
       - name: Zip application for Elastic Beanstalk
-        run: zip -r app.zip . -x "node_modules/*" ".git/*"
+        run: zip -r app.zip . -x "node_modules/*" ".git/*" "docker-compose.yml"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
