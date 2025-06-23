@@ -1,0 +1,15 @@
+# Terraform state and backup files
+terraform.tfstate
+terraform.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Sensitive variable files
+*.tfvars
+
+# Local deployment artifacts
+app-bundle.zip
+
+# OS and editor files
+*.DS_Store
+*.swp
