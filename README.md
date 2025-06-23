@@ -64,7 +64,7 @@ The service uses environment variables for configuration. See `.env.sample` for 
 - `GRAPH_CLIENT_ID` - Azure AD App Client ID
 - `GRAPH_CLIENT_SECRET` - Azure AD App Client Secret
 - `GRAPH_TENANT_ID` - Azure AD Tenant ID
-- `PORT` - Port for the API server (default: 3000)
+- `PORT` - Port for the API server (default: 8080)
 
 ---
 
@@ -78,7 +78,7 @@ Build and start all services (API, MongoDB) with:
 docker-compose up --build
 ```
 
-- The API will be available at [http://localhost:3000](http://localhost:3000)
+- The API will be available at [http://localhost:8080](http://localhost:8080)
 - MongoDB will be available at `mongodb://localhost:27017` (see `docker-compose.yml`)
 
 ### Running Locally (Without Docker)
@@ -103,7 +103,7 @@ docker-compose up --build
 OpenAPI (Swagger) documentation is available at:
 
 ```
-http://localhost:3000/api-docs
+http://localhost:8080/api-docs
 ```
 
 See `openapi/v1/openapi.yaml` for the full API spec.
