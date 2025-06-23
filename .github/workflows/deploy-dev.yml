@@ -9,7 +9,7 @@ env:
   AWS_REGION: ap-southeast-1
   APP_NAME: ebs-app-dev-sg-gt-security-groups
   ENV_NAME: ebs-env-dev-sg-gt-security-groups
-  S3_BUCKET: s3-dev-sg-gt-security-groups-2ed75db6
+  S3_BUCKET: s3-dev-sg-gt-security-groups-7dc7f542
 
 jobs:
   build-and-deploy:
