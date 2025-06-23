@@ -1,0 +1,63 @@
+name: Deploy to Elastic Beanstalk (PRD)
+
+on:
+  push:
+    branches: [deploy/prd]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-southeast-1
+  APP_NAME: ebs-app-prd-sg-gt-security-groups
+  ENV_NAME: ebs-env-prd-sg-gt-security-groups
+  S3_BUCKET: s3-prd-sg-gt-security-groups-ab8b4274
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build app
+        run: yarn build
+
+      - name: Build Docker image
+        run: docker build -t $APP_NAME .
+
+      - name: Zip application for Elastic Beanstalk
+        run: zip -r app.zip . -x "node_modules/*" ".git/*"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload ZIP to S3
+        run: |
+          export S3_KEY=deployments/prd/app-${{ github.sha }}.zip
+          aws s3 cp app.zip s3://$S3_BUCKET/$S3_KEY
+          echo "S3_KEY=$S3_KEY" >> $GITHUB_ENV
+
+      - name: Create new Beanstalk Application Version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name $APP_NAME \
+            --version-label "prd-${{ github.sha }}" \
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=$S3_KEY
+
+      - name: Deploy to Elastic Beanstalk (PRD)
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name $ENV_NAME \
+            --version-label "prd-${{ github.sha }}"
