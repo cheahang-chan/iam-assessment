@@ -1,5 +1,7 @@
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 import request from 'supertest';
-import app from '../../src/app';
+import createApp from '../../src/app';
 
 jest.mock('../../src/libs/graph-client', () => ({
   createGraphClient: async () => ({
@@ -25,6 +27,22 @@ jest.mock('../../src/libs/graph-client', () => ({
     })
   }),
 }));
+
+let mongoServer: MongoMemoryServer;
+let app: any;
+
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  process.env.MONGO_URI = uri;
+  await mongoose.connect(uri);
+  app = await createApp();
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+});
 
 describe('E2E [POST] - /api/v1/security-groups/sync', () => {
   it('should respond with status code 200 and expected structure', async () => {

@@ -10,20 +10,25 @@ import initSwagger from './config/swagger.config';
 
 dotenv.config();
 
-const app = express();
+export const createApp = async () => {
+    await connectMongo();
 
-app.use(helmet());
-app.use(correlationMiddleware);
-app.use(express.json());
+    const app = express();
 
-initSwagger(app);
-connectMongo();
+    app.use(helmet());
+    app.use(correlationMiddleware);
+    app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.status(200).json({ status: 'ok' });
-});
+    initSwagger(app);
 
-app.use('/api/v1/security-groups', securityGroupRoutes);
-app.use(errorMiddleware);
+    app.get('/', (req, res) => {
+        res.status(200).json({ status: 'ok' });
+    });
 
-export default app;
+    app.use('/api/v1/security-groups', securityGroupRoutes);
+    app.use(errorMiddleware);
+
+    return app;
+};
+
+export default createApp;
