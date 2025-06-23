@@ -19,6 +19,10 @@ app.use(express.json());
 initSwagger(app);
 connectMongo();
 
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
 app.use('/api/v1/security-groups', securityGroupRoutes);
 app.use(errorMiddleware);
 
