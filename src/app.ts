@@ -21,9 +21,8 @@ export const createApp = async () => {
 
     initSwagger(app);
 
-    app.get('/', (req, res) => {
-        res.status(200).json({ status: 'ok' });
-    });
+    app.get('/', (req, res) => { res.status(200).json({ status: 'ok' }) });
+    app.get('/healthz', (req, res) => { res.status(200).json({ status: 'ok' }) });
 
     app.use('/api/v1/security-groups', securityGroupRoutes);
     app.use(errorMiddleware);
