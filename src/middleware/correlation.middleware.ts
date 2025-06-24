@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { runWithCorrelationId } from '../utils/correlation-context';
 
 const CORRELATION_HEADER = 'x-correlation-id';
 
@@ -10,6 +11,7 @@ const CORRELATION_HEADER = 'x-correlation-id';
  * - Checks for an existing 'x-correlation-id' header in the request.
  * - If present, uses the incoming correlation ID; otherwise, generates a new UUID.
  * - Attaches the correlation ID to both the request headers and the response headers.
+ * - Sets up AsyncLocalStorage context for correlation ID propagation.
  * 
  * This enables end-to-end request tracking across distributed systems and simplifies debugging/logging.
  */
@@ -27,5 +29,8 @@ export const correlationMiddleware = (
 
     res.setHeader(CORRELATION_HEADER, correlationId);
 
-    next();
+    // Wrap the request lifecycle in AsyncLocalStorage context
+    runWithCorrelationId(correlationId, () => {
+        next();
+    });
 };
