@@ -3,12 +3,26 @@ import { generateGroupHash } from '../../utils/hash';
 import { IGraphClient, ISecurityGroupModel, ISyncResult } from './security-group.interfaces';
 import { ILogger } from '../../interfaces/logger.interface';
 import { AppError, ValidationError } from '../../utils/errors';
+import { HttpStatus } from '../../utils/http-status';
 
+/**
+ * Service responsible for synchronizing security-enabled groups from Microsoft Graph API
+ * into the local database. Handles fetching, validation, diffing, and upserting group data.
+ * 
+ * Dependencies are injected for testability and flexibility.
+ */
 export class SecurityGroupService {
   private graphClient: IGraphClient;
   private groupModel: ISecurityGroupModel;
   private logger: ILogger;
 
+  /**
+   * @param graphClient - Abstraction over Microsoft Graph API client
+   * @param groupModel - Abstraction over the SecurityGroup database model
+   * @param logger - Logger instance for observability
+   * 
+   * Dev Note: All dependencies are injected to facilitate testing and decoupling.
+   */
   constructor(
     graphClient: IGraphClient,
     groupModel: ISecurityGroupModel,
@@ -23,8 +37,6 @@ export class SecurityGroupService {
    * Sync security-enabled groups from Microsoft Graph API.
    * @param dryRun If true, does not persist changes.
    * 
-   * 
-   * Dev Notes:
    * Upsert should be used instead of delete & insert as we want to
    * preserve existing relations, indexes or references if any.
    * 
@@ -86,7 +98,7 @@ export class SecurityGroupService {
           } else {
             this.logger.info(`[GroupSync] Would replace: ${group.displayName} (${group.id})`);
           }
-          
+
           response.groups.push(document);
           response.processed++;
         } else {
@@ -108,6 +120,13 @@ export class SecurityGroupService {
   }
 
   /**
+   * Fetches security-enabled groups from Microsoft Graph API.
+   * 
+   * Currently fetches only the first page of results. 
+   * If the number of groups exceeds the API's page size, consider implementing pagination.
+   * The filter ensures only security-enabled groups are returned.
+   * 
+   * Future Improvements:
    * Use a circuit-breaker & retry policy for more advanced error handling and resilience.
    * We can also think about caching results from Graph API, but that maybe redundant as
    * syncing to MongoDB is in a way a form of caching mechanism.
@@ -120,10 +139,20 @@ export class SecurityGroupService {
         .get();
       return result.value;
     } catch (err: any) {
-      throw new AppError('Failed to fetch security groups from Microsoft Graph API', 502, 'GRAPH_API_ERROR', err);
+      throw new AppError(
+        'Failed to fetch security groups from Microsoft Graph API',
+        HttpStatus.BAD_GATEWAY,
+        'GRAPH_API_ERROR',
+        err);
     }
   }
 
+  /**
+   * Validates and parses a raw group object using Zod schema.
+   * 
+   * Throws ValidationError if the input does not conform to the schema.
+   * This ensures only well-formed data is processed and persisted.
+   */
   private validateGroup(groupRaw: unknown): SecurityGroupDTO {
     try {
       return SecurityGroupSchema.parse(groupRaw);

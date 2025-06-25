@@ -1,9 +1,11 @@
+import { HttpStatus } from "./http-status";
+
 export class AppError extends Error {
   public statusCode: number;
   public code?: string;
   public details?: any;
 
-  constructor(message: string, statusCode = 500, code?: string, details?: any) {
+  constructor(message: string, statusCode = HttpStatus.INTERNAL_SERVER_ERROR, code?: string, details?: any) {
     super(message);
     this.name = this.constructor.name;
     this.statusCode = statusCode;
@@ -15,12 +17,12 @@ export class AppError extends Error {
 
 export class ValidationError extends AppError {
   constructor(message: string, details?: any) {
-    super(message, 400, 'VALIDATION_ERROR', details);
+    super(message, HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR', details);
   }
 }
 
 export class NotFoundError extends AppError {
   constructor(message: string, details?: any) {
-    super(message, 404, 'NOT_FOUND', details);
+    super(message, HttpStatus.NOT_FOUND, 'NOT_FOUND', details);
   }
 }
