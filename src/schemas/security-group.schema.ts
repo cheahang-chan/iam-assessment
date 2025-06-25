@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+/**
+ * Zod schema for validating security group objects from Microsoft Graph API.
+ * 
+ * - Easily extensible: add new fields as needed for future requirements.
+ * - SecurityGroupDTO type is inferred for type-safe usage throughout the codebase.
+ */
 export const SecurityGroupSchema = z.object({
     id: z.string().uuid(),
     displayName: z.string().min(1),
