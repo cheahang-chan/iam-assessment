@@ -7,11 +7,11 @@ const seedSecurityGroups = async () => {
 
     const client = await createGraphClient();
 
-    const groups = [
-        { name: 'DevOps Team', nickname: 'devops-team' },
-        { name: 'Finance Team', nickname: 'finance-team' },
-        { name: 'QA Group', nickname: 'qa-group' }
-    ];
+    // Generate 25 groups for pagination testing
+    const groups = Array.from({ length: 25 }, (_, i) => ({
+        name: `Test Group ${i + 1}`,
+        nickname: `test-group-${i + 1}`
+    }));
 
     for (const g of groups) {
         await client.api('/groups').post({

@@ -3,11 +3,21 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import createApp from '../../src/app';
 
+// Mock Microsoft Graph Client with method chaining
 jest.mock('../../src/libs/graph-client', () => ({
   createGraphClient: async () => ({
-    api: () => ({
-      filter: () => ({
-        get: async () => ({
+    api: (_path: string) => ({
+      filter: function (_query: string) {
+        return this;
+      },
+      top: function (_n: number) {
+        return this;
+      },
+      select: function (_fields: string) {
+        return this;
+      },
+      get: async function () {
+        return {
           value: [
             {
               id: '598b1e6f-cd57-4949-9652-70498bc17fe7',
@@ -18,13 +28,13 @@ jest.mock('../../src/libs/graph-client', () => ({
               securityEnabled: true,
               groupTypes: [],
               visibility: 'Private',
-              createdDateTime: "2025-06-22T14:00:00.000Z",
-              renewedDateTime: "2025-06-22T14:00:00.000Z",
-            }
-          ]
-        })
-      })
-    })
+              createdDateTime: '2025-06-22T14:00:00.000Z',
+              renewedDateTime: '2025-06-22T14:00:00.000Z',
+            },
+          ],
+        };
+      },
+    }),
   }),
 }));
 
@@ -52,13 +62,15 @@ describe('E2E [POST] - /api/v1/security-groups/sync', () => {
       .send();
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('status', true);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body).toHaveProperty('data');
-    expect(response.body.data).toHaveProperty('processed');
-    expect(response.body.data).toHaveProperty('skipped');
-    expect(response.body.data).toHaveProperty('errors');
-    expect(response.body.data).toHaveProperty('groups');
-    expect(Array.isArray(response.body.data.groups)).toBe(true);
+    expect(response.body).toMatchObject({
+      status: true,
+      message: expect.any(String),
+      data: {
+        processed: expect.any(Number),
+        skipped: expect.any(Number),
+        errors: expect.any(Number),
+        groups: expect.any(Array),
+      },
+    });
   }, 20000); // 20s timeout
 });

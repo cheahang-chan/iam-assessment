@@ -4,6 +4,7 @@ import { IGraphClient, ISecurityGroupModel, ISyncResult } from './security-group
 import { ILogger } from '../../interfaces/logger.interface';
 import { AppError, ValidationError } from '../../utils/errors';
 import { HttpStatus } from '../../utils/http-status';
+import { AppConfig } from '../../config/app.config';
 
 /**
  * Service responsible for synchronizing security-enabled groups from Microsoft Graph API
@@ -56,12 +57,13 @@ export class SecurityGroupService {
    */
 
   async syncSecurityGroups({ dryRun = false }: { dryRun?: boolean }): Promise<ISyncResult> {
-    const groups = await this.fetchGroups();
+    const { pages, groups } = await this.fetchGroups();
 
     const response: ISyncResult = {
       processed: 0,
       skipped: 0,
       errors: 0,
+      pages: pages,
       groups: []
     }
 
@@ -120,10 +122,8 @@ export class SecurityGroupService {
   }
 
   /**
-   * Fetches security-enabled groups from Microsoft Graph API.
-   * 
-   * Currently fetches only the first page of results. 
-   * If the number of groups exceeds the API's page size, consider implementing pagination.
+   * Fetches all security-enabled groups from Microsoft Graph API, handling pagination.
+   * Aggregates results from all pages.
    * The filter ensures only security-enabled groups are returned.
    * 
    * Future Improvements:
@@ -131,13 +131,31 @@ export class SecurityGroupService {
    * We can also think about caching results from Graph API, but that maybe redundant as
    * syncing to MongoDB is in a way a form of caching mechanism.
    */
-  private async fetchGroups(): Promise<unknown[]> {
+  private async fetchGroups(): Promise<{ pages: number, groups: unknown[] }> {
+    interface GraphPagedResponse {
+      value: unknown[];
+      '@odata.nextLink'?: string;
+      [key: string]: unknown;
+    }
+
     try {
-      const result = await this.graphClient
+      let request = this.graphClient
         .api('/groups')
         .filter('securityEnabled eq true')
-        .get();
-      return result.value;
+        .top(AppConfig.EXTERNAL.AZURE.GRAPH_TOP_LIMIT);
+
+      let result = (await request.get()) as GraphPagedResponse;
+      let groups = result.value || [];
+      let pages = 1;
+
+      // Handle pagination using @odata.nextLink
+      while (result['@odata.nextLink']) {
+        result = (await this.graphClient.api(result['@odata.nextLink'] as string).get()) as GraphPagedResponse;
+        groups = groups.concat(result.value || []);
+        pages++;
+      }
+
+      return { pages, groups };
     } catch (err: any) {
       throw new AppError(
         'Failed to fetch security groups from Microsoft Graph API',
