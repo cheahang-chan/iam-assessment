@@ -5,6 +5,7 @@ import { ILogger } from '../../interfaces/logger.interface';
 import { AppError, ValidationError } from '../../utils/errors';
 import { HttpStatus } from '../../utils/http-status';
 import { AppConfig } from '../../config/app.config';
+import pLimit from "p-limit";
 
 /**
  * Service responsible for synchronizing security-enabled groups from Microsoft Graph API
@@ -67,56 +68,62 @@ export class SecurityGroupService {
       groups: []
     }
 
-    for (const groupRaw of groups) {
-      try {
-        const group = this.validateGroup(groupRaw);
-        const groupHash = generateGroupHash(group);
-        const existing = await this.groupModel.findOne({ graphId: group.id });
+    const limit = pLimit(AppConfig.CONCURRENCY_LIMIT);
 
-        if (!existing || existing.groupHash !== groupHash) {
-          const document = {
-            graphId: group.id,
-            displayName: group.displayName,
-            description: group.description || '',
-            mailNickname: group.mailNickname || '',
-            mailEnabled: group.mailEnabled,
-            securityEnabled: group.securityEnabled,
-            groupTypes: group.groupTypes || [],
-            visibility: group.visibility || '',
-            createdDateTime: new Date(group.createdDateTime),
-            renewedDateTime: new Date(group.renewedDateTime),
-            syncedAt: new Date(),
-            groupHash
-          };
+    const tasks = groups.map(groupRaw =>
+      limit(async () => {
+        try {
+          const group = this.validateGroup(groupRaw);
+          const groupHash = generateGroupHash(group);
+          const existing = await this.groupModel.findOne({ graphId: group.id });
 
-          if (!dryRun) {
-            await this.groupModel.replaceOne(
-              { graphId: group.id },
-              document,
-              { upsert: true }
-            );
+          if (!existing || existing.groupHash !== groupHash) {
+            const document = {
+              graphId: group.id,
+              displayName: group.displayName,
+              description: group.description || '',
+              mailNickname: group.mailNickname || '',
+              mailEnabled: group.mailEnabled,
+              securityEnabled: group.securityEnabled,
+              groupTypes: group.groupTypes || [],
+              visibility: group.visibility || '',
+              createdDateTime: new Date(group.createdDateTime),
+              renewedDateTime: new Date(group.renewedDateTime),
+              syncedAt: new Date(),
+              groupHash
+            };
 
-            this.logger.info(`[GroupSync] Replaced: ${group.displayName} (${group.id})`);
+            if (!dryRun) {
+              await this.groupModel.replaceOne(
+                { graphId: group.id },
+                document,
+                { upsert: true }
+              );
+
+              this.logger.info(`[GroupSync] Replaced: ${group.displayName} (${group.id})`);
+            } else {
+              this.logger.info(`[GroupSync] Would replace: ${group.displayName} (${group.id})`);
+            }
+
+            response.groups.push(document);
+            response.processed++;
           } else {
-            this.logger.info(`[GroupSync] Would replace: ${group.displayName} (${group.id})`);
+            this.logger.debug(`[GroupSync] Skipped unchanged group: ${group.displayName}`);
+            response.skipped++;
           }
+        } catch (err: any) {
+          if (err.name === 'ZodError') {
+            this.logger.warn(`[GroupSync] Skipping invalid group: ${err.errors?.map((e: { message: any }) => e.message).join(', ')}`);
+            response.skipped++;
+          } else {
+            this.logger.error(`[GroupSync] Error syncing group: ${err.message}`);
+            response.errors++;
+          }
+        }
+      })
+    );
 
-          response.groups.push(document);
-          response.processed++;
-        } else {
-          this.logger.debug(`[GroupSync] Skipped unchanged group: ${group.displayName}`);
-          response.skipped++;
-        }
-      } catch (err: any) {
-        if (err.name === 'ZodError') {
-          this.logger.warn(`[GroupSync] Skipping invalid group: ${err.errors?.map((e: { message: any }) => e.message).join(', ')}`);
-          response.skipped++;
-        } else {
-          this.logger.error(`[GroupSync] Error syncing group: ${err.message}`);
-          response.errors++;
-        }
-      }
-    }
+    await Promise.allSettled(tasks);
 
     return response;
   }

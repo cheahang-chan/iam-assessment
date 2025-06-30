@@ -23,6 +23,7 @@
         "helmet": "^8.1.0",
         "isomorphic-fetch": "^3.0.0",
         "mongoose": "^8.0.0",
+        "p-limit": "2.3.0",
         "swagger-jsdoc": "^6.2.8",
         "swagger-ui-express": "^4.6.3",
         "uuid": "^11.1.0",
