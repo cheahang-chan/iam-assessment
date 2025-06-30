@@ -11,7 +11,7 @@ import { getCorrelationId } from '../utils/correlation-context';
  * - In production, hides sensitive error details from the client but still logs them.
  * - Future improvement: Integrate with AWS CloudWatch or Slack for real-time alerting on critical errors.
  */
-export const errorMiddleware = (err: any, req: Request, res: Response, next: NextFunction): void => {
+export const errorMiddleware = (err: any, req: Request, res: Response, _next: NextFunction): void => {
   const traceId = getCorrelationId() || req.headers['x-correlation-id'] || 'N/A';
   const statusCode = err.statusCode || 500;
   const errorCode = err.code || undefined;

@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { createSecurityGroupService } from '../services/security-group/security-group.factory';
 
-export const fetchAndStoreSecurityGroups = async (req: Request, res: Response, next: NextFunction) => {
+export const fetchAndStoreSecurityGroups = async (req: Request, res: Response) => {
     const dryRun = req.query.dryRun === 'true';
     const service = await createSecurityGroupService();
     const groups = await service.syncSecurityGroups({ dryRun });
