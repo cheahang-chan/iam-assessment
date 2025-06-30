@@ -1,4 +1,5 @@
-FROM node:22-alpine
+# Stage 1 - Build
+FROM node:22-alpine AS builder
 
 # Install AWS CLI and jq
 # There was a breaking change in the base image used that prevents us from installing via pip
@@ -17,11 +18,21 @@ COPY . .
 
 RUN yarn build
 
-ENV NODE_ENV=production
+# Stage 2 - Runtime
+FROM node:22-alpine AS production
 
-# Copy in your entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production
+
+# Copy built output and required files from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENV NODE_ENV=production
 
 EXPOSE 8080
 CMD ["yarn", "start"]

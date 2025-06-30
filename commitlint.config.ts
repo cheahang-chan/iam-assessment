@@ -15,7 +15,9 @@ const config: UserConfig = {
                 'test',
                 'chore',
                 'revert',
-                'merge'
+                'merge',
+                'infra',
+                'pipeline'
             ]
         ]
     }
