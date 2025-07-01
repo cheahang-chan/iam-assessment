@@ -29,7 +29,7 @@ RUN yarn install --frozen-lockfile --production
 
 # Copy built output and required files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
+COPY --from=builder /app/docker-entrypoint.sh /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
