@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { Logger } from '../utils/logger';
 import { getCorrelationId } from '../utils/correlation-context';
+import { error } from '../utils/response';
+import { HttpStatus } from '../utils/http-status';
 
 /**
  * Global error-handling middleware for Express.
@@ -11,31 +13,27 @@ import { getCorrelationId } from '../utils/correlation-context';
  * - In production, hides sensitive error details from the client but still logs them.
  * - Future improvement: Integrate with AWS CloudWatch or Slack for real-time alerting on critical errors.
  */
-export const errorMiddleware = (err: any, req: Request, res: Response, _next: NextFunction): void => {
+export const errorMiddleware = (err: any, req: Request, res: Response, _next: NextFunction) => {
   const traceId = getCorrelationId() || req.headers['x-correlation-id'] || 'N/A';
-  const statusCode = err.statusCode || 500;
+
+  const name = err.name || "InternalError";
+  const message = err.message || 'Internal Server Error';
   const errorCode = err.code || undefined;
   const errorDetails = err.details || undefined;
+  const statusCode = err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
 
-  const responseBody: any = {
-    error: true,
-    traceId,
-    message: err.message || 'Internal Server Error'
-  };
+  Logger.error(`[${traceId}] [ERROR] ${name}: ${message}`);
 
-  // Log error with traceId for correlation
-  Logger.error(`[${traceId}] [ERROR] ${err.name || 'InternalError'}: ${err.message}`);
-
+  const responseBody: any = { traceId };
   if (errorCode) responseBody.code = errorCode;
-  if (process.env.NODE_ENV === 'development') {
-    Logger.error(err.stack);
-    if (errorDetails) responseBody.details = errorDetails;
-  }
-  
-  // Always log error details if present, but only expose to client in development
   if (errorDetails) {
+    responseBody.details = errorDetails;
     Logger.error(`[${traceId}] [DETAILS] ${JSON.stringify(errorDetails)}`);
   }
 
-  res.status(statusCode).json(responseBody);
+  if (process.env.NODE_ENV === 'development') {
+    Logger.error(err.stack);
+  }
+
+  return error(res, message, responseBody, statusCode);
 };

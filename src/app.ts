@@ -7,6 +7,7 @@ import securityGroupRoutes from './routes/security-group.routes';
 import { errorMiddleware } from './middleware/error.middleware';
 import { correlationMiddleware } from './middleware/correlation.middleware';
 import initSwagger from './config/swagger.config';
+import { success } from './utils/response';
 
 dotenv.config();
 
@@ -21,8 +22,8 @@ export const createApp = async () => {
 
     initSwagger(app);
 
-    app.get('/', (req, res) => { res.status(200).json({ status: 'ok' }) });
-    app.get('/healthz', (req, res) => { res.status(200).json({ status: 'ok' }) });
+    app.get('/', (req, res) => { return success(res, "Ok") });
+    app.get('/healthz', (req, res) => { return success(res, "Ok") });
 
     app.use('/api/v1/security-groups', securityGroupRoutes);
     app.use(errorMiddleware);
