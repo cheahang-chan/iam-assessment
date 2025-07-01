@@ -12,12 +12,15 @@ export interface IGraphRequest {
 }
 
 export interface ISecurityGroupModel {
+  find(query: {}): Promise<any>;
   findOne(query: { graphId: string }): Promise<any>;
   replaceOne(
     query: { graphId: string },
     doc: any,
     options: { upsert: boolean }
   ): Promise<any>;
+  deleteMany(query: {}): Promise<any>;
+  findOneAndDelete(query: { graphId: string }): Promise<any>;
 }
 
 export interface ISyncResult {

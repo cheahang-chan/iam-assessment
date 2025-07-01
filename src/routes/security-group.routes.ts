@@ -1,8 +1,19 @@
 import express from 'express';
-import { fetchAndStoreSecurityGroups } from '../controllers/security-group.controller';
+import {
+    syncSecurityGroups,
+    getAllSecurityGroups,
+    getSecurityGroupById,
+    deleteAllSecurityGroups,
+    deleteSecurityGroupById
+} from '../controllers/security-group.controller';
 
 const router = express.Router();
 
-router.post('/sync', fetchAndStoreSecurityGroups);
+router.post('/sync', syncSecurityGroups);
+
+router.get('/', getAllSecurityGroups);
+router.get('/:id', getSecurityGroupById);
+router.delete('/', deleteAllSecurityGroups);
+router.delete('/:id', deleteSecurityGroupById);
 
 export default router;

@@ -2,15 +2,84 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Security Group Sync API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "API to sync Azure AD security groups and members"
+  },
+  "components": {
+    "schemas": {
+      "SecurityGroup": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "60d21b4667d0d8992e610c85"
+          },
+          "graphId": {
+            "type": "string",
+            "example": "12345678-90ab-cdef-1234-567890abcdef"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Engineering Team"
+          },
+          "description": {
+            "type": "string",
+            "example": "Group for engineering department"
+          },
+          "mailNickname": {
+            "type": "string",
+            "example": "eng-team"
+          },
+          "mailEnabled": {
+            "type": "boolean",
+            "example": false
+          },
+          "securityEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "groupTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Unified"
+            ]
+          },
+          "visibility": {
+            "type": "string",
+            "example": "Private"
+          },
+          "createdDateTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-01T12:00:00Z"
+          },
+          "renewedDateTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-06-01T12:00:00Z"
+          },
+          "groupHash": {
+            "type": "string",
+            "example": "abc123def456"
+          },
+          "syncedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-07-01T12:00:00Z"
+          }
+        }
+      }
+    }
   },
   "paths": {
     "/api/v1/security-groups/sync": {
       "post": {
         "summary": "Sync security groups",
         "tags": [
-          "Security Groups"
+          "Security Groups Sync"
         ],
         "parameters": [
           {
@@ -57,10 +126,164 @@
                         "groups": {
                           "type": "array",
                           "items": {
-                            "type": "object"
+                            "$ref": "#/components/schemas/SecurityGroup"
                           }
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/security-groups": {
+      "get": {
+        "summary": "Fetch all security groups",
+        "tags": [
+          "Security Groups"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of security groups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Fetched all security groups"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SecurityGroup"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete all security groups",
+        "tags": [
+          "Security Groups"
+        ],
+        "responses": {
+          "200": {
+            "description": "All security groups deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Deleted all security groups"
+                    },
+                    "deletedCount": {
+                      "type": "integer",
+                      "example": 10
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/security-groups/{id}": {
+      "get": {
+        "summary": "Fetch a security group by ID",
+        "tags": [
+          "Security Groups"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group ID of the security group"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Security group found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Fetched security group"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SecurityGroup"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a security group by ID",
+        "tags": [
+          "Security Groups"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group ID of the security group"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Security group deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Deleted security group"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SecurityGroup"
                     }
                   }
                 }

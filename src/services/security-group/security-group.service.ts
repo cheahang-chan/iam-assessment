@@ -129,6 +129,36 @@ export class SecurityGroupService {
   }
 
   /**
+   * Get all security groups from the database.
+   */
+  async getAllSecurityGroups() {
+    return this.groupModel.find({});
+  }
+
+  /**
+   * Get a security group by its MongoDB _id.
+   * @param id MongoDB ObjectId string
+   */
+  async getSecurityGroupById(id: string) {
+    return this.groupModel.findOne({ graphId: id });
+  }
+
+  /**
+   * Delete all security groups from the database.
+   */
+  async deleteAllSecurityGroups() {
+    return this.groupModel.deleteMany({});
+  }
+
+  /**
+   * Delete a security group by its MongoDB _id.
+   * @param id MongoDB ObjectId string
+   */
+  async deleteSecurityGroupById(id: string) {
+    return this.groupModel.findOneAndDelete({graphId: id});
+  }
+
+  /**
    * Fetches all security-enabled groups from Microsoft Graph API, handling pagination.
    * Aggregates results from all pages.
    * The filter ensures only security-enabled groups are returned.

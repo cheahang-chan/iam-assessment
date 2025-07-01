@@ -12,35 +12,35 @@ function createMockGraphRequest(data: any): IGraphRequest {
 }
 
 export const mockGraphClient: IGraphClient = {
-  api: (_path: string): IGraphRequest => ({
-    filter: function (_query: string) {
-      return this;
-    },
-    top: function (_n: number) {
-      return this;
-    },
-    select: function (_fields: string) {
-      return this;
-    },
-    get: async function () {
-      return {
-        value: [
-          {
-            id: '598b1e6f-cd57-4949-9652-70498bc17fe7',
-            displayName: 'Test Group',
-            description: 'A test group',
-            mailNickname: 'testgroup',
-            mailEnabled: false,
-            securityEnabled: true,
-            groupTypes: [],
-            visibility: 'Private',
-            createdDateTime: '2025-06-22T14:00:00.000Z',
-            renewedDateTime: '2025-06-22T14:00:00.000Z',
-          },
-        ],
-      };
-    },
-  }),
+    api: (_path: string): IGraphRequest => ({
+        filter: function (_query: string) {
+            return this;
+        },
+        top: function (_n: number) {
+            return this;
+        },
+        select: function (_fields: string) {
+            return this;
+        },
+        get: async function () {
+            return {
+                value: [
+                    {
+                        id: '598b1e6f-cd57-4949-9652-70498bc17fe7',
+                        displayName: 'Test Group',
+                        description: 'A test group',
+                        mailNickname: 'testgroup',
+                        mailEnabled: false,
+                        securityEnabled: true,
+                        groupTypes: [],
+                        visibility: 'Private',
+                        createdDateTime: '2025-06-22T14:00:00.000Z',
+                        renewedDateTime: '2025-06-22T14:00:00.000Z',
+                    },
+                ],
+            };
+        },
+    }),
 };
 
 const mockPaginationGraphClient: IGraphClient = {
@@ -85,11 +85,6 @@ const mockPaginationGraphClient: IGraphClient = {
     }
 };
 
-const mockModel: ISecurityGroupModel = {
-    findOne: async () => null,
-    replaceOne: async () => ({ graphId: '1', displayName: 'Test Group' }),
-};
-
 const mockLogger: ILogger = {
     info: jest.fn(),
     debug: jest.fn(),
@@ -98,6 +93,14 @@ const mockLogger: ILogger = {
 };
 
 describe('SecurityGroupService', () => {
+    const mockModel: ISecurityGroupModel = {
+        find: async () => null,
+        findOne: async () => null,
+        deleteMany: async () => null,
+        findOneAndDelete: async () => null,
+        replaceOne: async () => ({ graphId: '1', displayName: 'Test Group' }),
+    };
+
     it('should process and upsert new groups', async () => {
         const service = new SecurityGroupService(mockGraphClient, mockModel, mockLogger);
         const result: ISyncResult = await service.syncSecurityGroups({ dryRun: false });
@@ -110,6 +113,7 @@ describe('SecurityGroupService', () => {
 
     it('should skip unchanged groups', async () => {
         const modelWithExisting: ISecurityGroupModel = {
+            find: async () => ({}),
             findOne: async () => ({
                 id: '598b1e6f-cd57-4949-9652-70498bc17fe7',
                 displayName: 'Test Group',
@@ -124,6 +128,8 @@ describe('SecurityGroupService', () => {
                 groupHash: 'fb49aae60b360dd72c7cf2601bcfb2c676019049766f75bdebb7f2fee04306d2'
             }),
             replaceOne: async () => ({}),
+            deleteMany: async () => ({}),
+            findOneAndDelete: async () => ({}),
         };
 
         const service = new SecurityGroupService(mockGraphClient, modelWithExisting, mockLogger);

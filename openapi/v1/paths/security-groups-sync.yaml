@@ -2,7 +2,7 @@ sync:
   post:
     summary: Sync security groups
     tags:
-      - Security Groups
+      - Security Groups Sync
     parameters:
       - in: query
         name: dryRun
@@ -39,4 +39,4 @@ sync:
                     groups:
                       type: array
                       items:
-                        type: object
+                        $ref: '../schemas/SecurityGroup.yaml'

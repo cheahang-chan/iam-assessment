@@ -1,0 +1,100 @@
+security-groups:
+  get:
+    summary: Fetch all security groups
+    tags:
+      - Security Groups
+    responses:
+      '200':
+        description: List of security groups stored in MongoDB
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Fetched all security groups
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/SecurityGroup.yaml'
+  delete:
+    summary: Delete all security groups stored in MongoDB
+    tags:
+      - Security Groups
+    responses:
+      '200':
+        description: All security groups deleted
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Deleted all security groups
+                deletedCount:
+                  type: integer
+                  example: 10
+
+security-groups-id:
+  get:
+    summary: Fetch a security group by ID in MongoDB
+    tags:
+      - Security Groups
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Group ID of the security group
+    responses:
+      '200':
+        description: Security group found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Fetched security group
+                data:
+                  $ref: '../schemas/SecurityGroup.yaml'
+  delete:
+    summary: Delete a security group by ID in MongoDB
+    tags:
+      - Security Groups
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Group ID of the security group
+    responses:
+      '200':
+        description: Security group deleted
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Deleted security group
+                data:
+                  $ref: '../schemas/SecurityGroup.yaml'
