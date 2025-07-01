@@ -29,6 +29,6 @@ export class ValidationError extends AppError {
 
 export class NotFoundError extends AppError {
   constructor(message: string, details?: any) {
-    super(message, HttpStatus.NOT_FOUND, 'NOT_FOUND', details);
+    super(message, HttpStatus.NOT_FOUND, 'NOT_FOUND_ERROR', details);
   }
 }
