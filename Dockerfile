@@ -1,13 +1,6 @@
 # Stage 1 - Build
 FROM node:22-alpine AS builder
 
-# Install AWS CLI and jq
-# There was a breaking change in the base image used that prevents us from installing via pip
-# Instead of activating a virtual env, this is a simpler workaround
-# https://github.com/python/cpython/issues/102134
-RUN apk add --no-cache jq aws-cli
-RUN aws configure set default.region ap-southeast-1
-
 WORKDIR /app
 
 # Install dependencies first — only if package files change
@@ -22,6 +15,14 @@ RUN yarn build
 FROM node:22-alpine AS production
 
 WORKDIR /app
+
+# Install AWS CLI and jq
+# This is meant for docker-entrypoint to load secrets from AWS Secret Manager
+# There was a breaking change in the base image used that prevents us from installing via pip
+# Instead of activating a virtual env, this is a simpler workaround
+# https://github.com/python/cpython/issues/102134
+RUN apk add --no-cache jq aws-cli
+RUN aws configure set default.region ap-southeast-1
 
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --production
