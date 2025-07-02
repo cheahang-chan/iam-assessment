@@ -1,3 +1,10 @@
+## Deployment & CI Status
+![CI](https://github.com/cheahang-chan/iam-assessment/actions/workflows/deploy-dev.yml/badge.svg) ![CI](https://github.com/cheahang-chan/iam-assessment/actions/workflows/deploy-prd.yml/badge.svg)
+
+| Demo Deployment | |
+|------|-------|
+|[Development](dev-security-groups.cheahang.dev)|![Deployment](https://img.shields.io/badge/deployed-success-brightgreen?style=flat-square&logo=aws)
+
 # GovTech IAM Software Engineer Assessment
 
 A Node.js/TypeScript service for synchronizing security-enabled groups from Microsoft Graph API into a MongoDB database.
