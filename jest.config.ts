@@ -9,6 +9,7 @@ const config: Config = {
   transform: {
     ...tsJestTransformCfg,
   },
+  setupFiles: ['<rootDir>/jest.setup.ts']
 };
 
 export default config;
