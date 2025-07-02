@@ -1,11 +1,13 @@
 import { SecurityGroupDTO, SecurityGroupSchema } from '../../schemas/security-group.schema';
 import { generateGroupHash } from '../../utils/hash';
-import { IGraphClient, ISecurityGroupModel, ISyncResult } from './security-group.interfaces';
+import { IGraphClient, IGraphPagedResponse, ISecurityGroupModel, ISyncResult } from './security-group.interfaces';
 import { ILogger } from '../../interfaces/logger.interface';
 import { AppError, ValidationError } from '../../utils/errors';
 import { HttpStatus } from '../../utils/http-status';
 import { AppConfig } from '../../config/app.config';
 import pLimit from "p-limit";
+import { getAccessToken } from '../../libs/graph-client';
+import axios from 'axios';
 
 /**
  * Service responsible for synchronizing security-enabled groups from Microsoft Graph API
@@ -57,8 +59,9 @@ export class SecurityGroupService {
    * bit-for-bit data fidelity.
    */
 
-  async syncSecurityGroups({ dryRun = false }: { dryRun?: boolean }): Promise<ISyncResult> {
-    const { pages, groups } = await this.fetchGroups();
+  async syncSecurityGroups({ sdk = true, dryRun = false }: { sdk?: boolean, dryRun?: boolean }): Promise<ISyncResult> {
+    const { pages, groups } = sdk ? await this.fetchGroupsBySdk() : await this.fetchGroupsByApi();
+    console.log("SDK", sdk);
 
     const response: ISyncResult = {
       processed: 0,
@@ -155,7 +158,7 @@ export class SecurityGroupService {
    * @param id MongoDB ObjectId string
    */
   async deleteSecurityGroupById(id: string) {
-    return this.groupModel.findOneAndDelete({graphId: id});
+    return this.groupModel.findOneAndDelete({ graphId: id });
   }
 
   /**
@@ -168,26 +171,20 @@ export class SecurityGroupService {
    * We can also think about caching results from Graph API, but that maybe redundant as
    * syncing to MongoDB is in a way a form of caching mechanism.
    */
-  private async fetchGroups(): Promise<{ pages: number, groups: unknown[] }> {
-    interface GraphPagedResponse {
-      value: unknown[];
-      '@odata.nextLink'?: string;
-      [key: string]: unknown;
-    }
-
+  private async fetchGroupsBySdk(): Promise<{ pages: number, groups: unknown[] }> {
     try {
       let request = this.graphClient
         .api('/groups')
         .filter('securityEnabled eq true')
         .top(AppConfig.EXTERNAL.AZURE.GRAPH_TOP_LIMIT);
 
-      let result = (await request.get()) as GraphPagedResponse;
+      let result = (await request.get()) as IGraphPagedResponse;
       let groups = result.value || [];
       let pages = 1;
 
       // Handle pagination using @odata.nextLink
       while (result['@odata.nextLink']) {
-        result = (await this.graphClient.api(result['@odata.nextLink'] as string).get()) as GraphPagedResponse;
+        result = (await this.graphClient.api(result['@odata.nextLink'] as string).get()) as IGraphPagedResponse;
         groups = groups.concat(result.value || []);
         pages++;
       }
@@ -199,6 +196,38 @@ export class SecurityGroupService {
         HttpStatus.BAD_GATEWAY,
         'GRAPH_API_ERROR',
         err);
+    }
+  }
+
+  private async fetchGroupsByApi(): Promise<{ pages: number; groups: unknown[] }> {
+    const groups: unknown[] = [];
+    let pages = 0;
+
+    try {
+      const accessToken = await getAccessToken();
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      };
+
+      let url = `https://graph.microsoft.com/v1.0/groups?$filter=securityEnabled eq true&$top=${AppConfig.EXTERNAL.AZURE.GRAPH_TOP_LIMIT}`;
+
+      while (url) {
+        const response = await axios.get<IGraphPagedResponse>(url, { headers });
+
+        groups.push(...(response.data.value || []));
+        url = response.data['@odata.nextLink'] || '';
+        pages++;
+      }
+
+      return { pages, groups };
+    } catch (err: any) {
+      throw new AppError(
+        'Failed to fetch security groups from Microsoft Graph API',
+        HttpStatus.BAD_GATEWAY,
+        'GRAPH_API_ERROR',
+        err
+      );
     }
   }
 

@@ -84,12 +84,21 @@
         "parameters": [
           {
             "in": "query",
+            "name": "sdk",
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false,
+            "description": "Uses Microsoft Graph SDK / API for fetching groups. (Default - true)"
+          },
+          {
+            "in": "query",
             "name": "dryRun",
             "schema": {
               "type": "boolean"
             },
             "required": false,
-            "description": "If true, does not persist changes."
+            "description": "If true, does not persist changes. (Default - false)"
           }
         ],
         "responses": {
@@ -147,7 +156,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of security groups",
+            "description": "List of security groups stored in MongoDB",
             "content": {
               "application/json": {
                 "schema": {
@@ -175,7 +184,7 @@
         }
       },
       "delete": {
-        "summary": "Delete all security groups",
+        "summary": "Delete all security groups stored in MongoDB",
         "tags": [
           "Security Groups"
         ],
@@ -209,7 +218,7 @@
     },
     "/api/v1/security-groups/{id}": {
       "get": {
-        "summary": "Fetch a security group by ID",
+        "summary": "Fetch a security group by ID in MongoDB",
         "tags": [
           "Security Groups"
         ],
@@ -251,7 +260,7 @@
         }
       },
       "delete": {
-        "summary": "Delete a security group by ID",
+        "summary": "Delete a security group by ID in MongoDB",
         "tags": [
           "Security Groups"
         ],

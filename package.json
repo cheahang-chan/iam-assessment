@@ -17,6 +17,7 @@
     "dependencies": {
         "@azure/identity": "^4.10.1",
         "@microsoft/microsoft-graph-client": "^3.0.7",
+        "axios": "^1.10.0",
         "dotenv": "^16.3.1",
         "express": "^4.19.0",
         "express-async-errors": "^3.1.1",

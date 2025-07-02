@@ -11,6 +11,12 @@ export interface IGraphRequest {
   get(): Promise<any>;
 }
 
+export interface IGraphPagedResponse {
+  value: unknown[];
+  '@odata.nextLink'?: string;
+  [key: string]: unknown;
+}
+
 export interface ISecurityGroupModel {
   find(query: {}): Promise<any>;
   findOne(query: { graphId: string }): Promise<any>;
@@ -30,3 +36,4 @@ export interface ISyncResult {
   pages: number;
   groups: any[];
 }
+

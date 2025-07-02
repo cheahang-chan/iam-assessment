@@ -5,11 +5,17 @@ sync:
       - Security Groups Sync
     parameters:
       - in: query
+        name: sdk
+        schema:
+          type: boolean
+        required: false
+        description: Uses Microsoft Graph SDK / API for fetching groups. (Default - true)
+      - in: query
         name: dryRun
         schema:
           type: boolean
         required: false
-        description: If true, does not persist changes.
+        description: If true, does not persist changes. (Default - false)
     responses:
       '200':
         description: Sync result

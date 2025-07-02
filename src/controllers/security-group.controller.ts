@@ -5,10 +5,12 @@ import { BadRequestError, NotFoundError } from '../utils/errors';
 
 export const syncSecurityGroups = async (req: Request, res: Response) => {
     const dryRun = req.query.dryRun === 'true';
-    const service = await createSecurityGroupService();
-    const groups = await service.syncSecurityGroups({ dryRun });
+    const sdk = req.query.sdk !== 'false'; // Default to true if not specified
 
-    return success(res, 'Security Groups Synced', groups);
+    const service = await createSecurityGroupService();
+    const groups = await service.syncSecurityGroups({ sdk, dryRun });
+
+    return success(res, `Security Groups Synced via ${sdk ? "SDK" : "API"}`, groups);
 };
 
 /**
