@@ -2,17 +2,23 @@
 
 A Node.js/TypeScript service for synchronizing security-enabled groups from Microsoft Graph API into a MongoDB database.
 
----
+## Features
+
+- Syncs security-enabled groups from Microsoft Graph API to MongoDB
+- TypeScript-first, with strong typing and validation (Zod)
+- OpenAPI (Swagger) documentation
+- Dockerized for easy local development and deployment
+- Modular, testable architecture
 
 ## Table of Contents
-
 - [GovTech IAM Software Engineer Assessment](#govtech-iam-software-engineer-assessment)
-  - [Table of Contents](#table-of-contents)
   - [Features](#features)
-  - [Prerequisites](#prerequisites)
-  - [Setup](#setup)
-  - [ENV Configuration](#env-configuration)
-  - [Running the Service](#running-the-service)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+    - [Prerequisites](#prerequisites)
+    - [Setup](#setup)
+    - [Environment Configuration](#environment-configuration)
+  - [Running Service](#running-service)
     - [Using Docker Compose (Recommended)](#using-docker-compose-recommended)
     - [Running Locally (Without Docker)](#running-locally-without-docker)
   - [API Documentation](#api-documentation)
@@ -23,40 +29,36 @@ A Node.js/TypeScript service for synchronizing security-enabled groups from Micr
     - [Test Structure](#test-structure)
     - [Code Coverage](#code-coverage)
   - [Troubleshooting](#troubleshooting)
+  - [Infrastructure as Code](#infrastructure-as-code)
+  - [Correlation ID \& Distributed Tracing](#correlation-id--distributed-tracing)
+    - [How it works](#how-it-works)
+    - [Example](#example)
+  - [Assumptions](#assumptions)
+    - [Microft Graph API Integration](#microft-graph-api-integration)
+    - [MongoDB Integration](#mongodb-integration)
+    - [Authentication](#authentication)
+    - [Sync Strategy](#sync-strategy)
+    - [Deployment on AWS Elastic Beanstalk (EBS)](#deployment-on-aws-elastic-beanstalk-ebs)
+    - [Observability](#observability)
 
----
-
-## Features
-
-- Syncs security-enabled groups from Microsoft Graph API to MongoDB
-- TypeScript-first, with strong typing and validation (Zod)
-- OpenAPI (Swagger) documentation
-- Dockerized for easy local development and deployment
-- Modular, testable architecture
-
----
-
-## Prerequisites
+## Quick Start
+### Prerequisites
 
 - [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/)
 - (Optional) [Node.js](https://nodejs.org/) v18+ and [Yarn](https://yarnpkg.com/) if running locally
 
----
 
-## Setup
+### Setup
 
-1. **Clone the repository:**
-
-2. **Copy and configure environment variables:**
+1. Clone the repository:
+2. Copy and configure environment variables:
    ```sh
    cp .env.sample .env
    ```
    Edit `.env` to provide your Microsoft Graph and MongoDB credentials.
 
----
-
-## ENV Configuration
+### Environment Configuration
 
 The service uses environment variables for configuration. See `.env.sample` for all required variables:
 
@@ -66,9 +68,7 @@ The service uses environment variables for configuration. See `.env.sample` for 
 - `GRAPH_TENANT_ID` - Azure AD Tenant ID
 - `PORT` - Port for the API server (default: 8080)
 
----
-
-## Running the Service
+## Running Service
 
 ### Using Docker Compose (Recommended)
 
@@ -77,7 +77,6 @@ Build and start all services (API, MongoDB) with:
 ```sh
 docker-compose up --build
 ```
-
 - The API will be available at [http://localhost:8080](http://localhost:8080)
 - MongoDB will be available at `mongodb://localhost:27017` (see `docker-compose.yml`)
 
@@ -96,11 +95,9 @@ docker-compose up --build
    yarn dev
    ```
 
----
-
 ## API Documentation
 
-OpenAPI (Swagger) documentation is available at:
+Access Swagger UI at:
 
 ```
 http://localhost:8080/api-docs
@@ -117,10 +114,6 @@ yarn swagger:validate
 yarn swagger:build
 ```
 
-These commands will update and check your OpenAPI specification for correctness.
-
----
-
 ## Seeding Security Groups
 
 To create sample security groups in Azure AD (for development/testing):
@@ -128,10 +121,7 @@ To create sample security groups in Azure AD (for development/testing):
 ```sh
 yarn seed:groups
 ```
-
 > Requires valid Microsoft Graph credentials in your `.env`.
-
----
 
 ## Testing
 
@@ -141,11 +131,6 @@ This project uses [Jest](https://jestjs.io/) for testing.
 - **Integration tests** can be added under the `tests/` directory.
 
 ### Running Tests
-
-In order to run E2E test, the app needs to be connected to a MongoDB instance. You may spin up a MongoDB instance in Docker Compose or configure `MONGO_URI` in `.env` to use a cloud instance.
-```sh
-docker-compose up -d mongodb
-```
 
 To run all tests:
 
@@ -166,10 +151,6 @@ To check code coverage, run:
 yarn test --coverage
 ```
 
-A summary will be displayed in the terminal.
-
----
-
 ## Troubleshooting
 
 - **MongoDB connection errors:** Ensure MongoDB is running and `MONGO_URI` is correct.
@@ -178,4 +159,72 @@ A summary will be displayed in the terminal.
 
 Logs are output to the console by default.
 
+## Infrastructure as Code
+
+Infrastructure resources (e.g., AWS, secrets, S3, IAM, Beanstalk) are managed using [Terraform](https://www.terraform.io/).
+
+- All Terraform files are in the `infrastructure/` directory.
+- See [infrastructure/docs/README.md](infrastructure/docs/README.md) for detailed infrastructure setup and remote backend configuration.
+
 ---
+
+## Correlation ID & Distributed Tracing
+
+This service uses the `x-correlation-id` HTTP header to enable request tracing across distributed systems.
+
+### How it works
+
+- Every incoming HTTP request is checked for an `x-correlation-id` header.
+- If present, the existing correlation ID is used; otherwise, a new UUID is generated.
+- The correlation ID is attached to both the request and response headers.
+- All error logs include the correlation ID for traceability.
+
+### Example
+
+```http
+GET /api/v1/security-groups HTTP/1.1
+Host: example.com
+x-correlation-id: 123e4567-e89b-12d3-a456-426614174000
+```
+
+All logs and downstream requests related to this API call should include the same correlation ID.
+
+## Assumptions
+### Microft Graph API Integration
+- The solution assumes the use of Client Credentials OAuth2.0 flow with a pre-registered Azure AD App to authenticate and fetch data from Microsoft Graph API.
+
+- Only security-enabled groups (i.e., `securityEnabled: true`) are in scope for synchronization.
+
+- The app syncs group metadata only. Group members are out of scope, but can be implemented further.
+
+- Pagination is handled using Graph SDK’s `@odata.nextLink` helper, assuming the number of security groups may exceed a single page set via `AppConfig.EXTERNAL.AZURE.GRAPH_TOP_LIMIT` (Max 999 set by Microsoft Graph).
+
+### MongoDB Integration
+- The data is persisted in a MongoDB collection named `SecurityGroup`.
+  
+- Local development uses MongoDB via Docker Compose, while the production deployment targets a Cloud MongoDB Atlas server, with credentials injected via environment variables.
+
+### Authentication
+- The service exposes basic endpoints:
+  - `POST /api/v1/sync`: Synchronizes data from Microsoft Graph API to MongoDB.
+  - `GET /api/v1/security-groups{/:id}`: Retrieves all security groups stored in MongoDB.
+  - `DELETE /api/v1/security-groups{/:id}`: Deletes a specific group by ID.
+  
+- API authentication is not enforced (e.g., no JWT or API key layer), assuming it’s acceptable for demo purposes.
+  
+### Sync Strategy
+- The current implementation supports manual syncing via CLI; no scheduler or CRON job is included but can be configured using Cloud Scheduler tools like EventBridge.
+
+- Sync logic is implemented as an internal service and can be triggered from a REST endpoint or CLI script.
+
+### Deployment on AWS Elastic Beanstalk (EBS)
+- The service is hosted as a Dockerized Node.js app on AWS EBS using a single-container Docker platform.
+  
+- MongoDB Atlas connection string and Graph API credentials are stored in AWS Secret Manager with the Secret ARN injected through EBS Environment and pulled using `docker-entrypoint.sh`.
+
+- Port 8080 is assumed as per EBS expectations.
+
+### Observability
+- Basic logging is implemented via a custom Logger utility using Winston, outputting to console; no centralized log shipping (e.g., to CloudWatch or Datadog).
+
+- CloudWatch Alerts can be setup to monitor instances of crtical errors and triggered via SNS Email/Webhook to Email/Slack.
