@@ -1,9 +1,9 @@
 ## Deployment & CI Status
 ![CI](https://github.com/cheahang-chan/iam-assessment/actions/workflows/deploy-dev.yml/badge.svg) ![CI](https://github.com/cheahang-chan/iam-assessment/actions/workflows/deploy-prd.yml/badge.svg)
 
-| Demo Environment | |
+<!-- | Demo Environment | |
 |------|-------|
-|[Development](https://dev-security-groups.cheahang.dev/api-docs)|![Deployment](https://img.shields.io/badge/deployed-success-brightgreen?style=flat-square&logo=aws)
+|[Development](https://dev-security-groups.cheahang.dev/api-docs)|![Deployment](https://img.shields.io/badge/deployed-success-brightgreen?style=flat-square&logo=aws) -->
 
 # GovTech IAM Software Engineer Assessment
 
